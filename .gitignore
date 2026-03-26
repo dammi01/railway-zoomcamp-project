@@ -1,0 +1,26 @@
+venv/
+.env
+*.json
+.terraform/
+venv/
+.env
+*.json
+.terraform/
+terraform.tfstate
+
+# Data files
+data/
+*.csv
+*.csv.gz
+*.parquet
+
+# Python environments
+.venv/
+venv/
+__pycache__/
+
+# Terraform state
+*.tfstate
+*.tfstate.backup
+
+

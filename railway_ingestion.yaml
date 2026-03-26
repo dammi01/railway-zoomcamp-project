@@ -1,0 +1,36 @@
+id: railway_data_ingestion
+namespace: dev.zoomcamp
+
+tasks:
+  - id: process_and_upload
+    type: io.kestra.plugin.scripts.python.Script
+    containerImage: python:3.11-slim
+    beforeCommands:
+      - pip install google-cloud-storage duckdb pandas pyarrow
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: "{{ secret('GCP_CREDS') }}"
+      BUCKET_NAME: "railway-data-lake-dammi-2026"
+    script: |
+      import duckdb
+      import os
+      from google.cloud import storage
+
+      years = [2024, 2025]
+      for year in years:
+          input_file = f"data/services-{year}.csv.gz"
+          output_parquet = f"services-{year}.parquet"
+          
+          # Circuit Breaker: Check file existence
+          if not os.path.exists(input_file):
+              print(f"Skipping {year}: File not found")
+              continue
+
+          # Transformation: DuckDB 
+          duckdb.query(f"COPY (SELECT * FROM read_csv_auto('{input_file}')) TO '{output_parquet}' (FORMAT 'PARQUET')")
+
+          # Ingestion: GCS Upload
+          client = storage.Client()
+          bucket = client.bucket(os.environ['BUCKET_NAME'])
+          blob = bucket.blob(f"raw/{output_parquet}")
+          blob.upload_from_filename(output_parquet)
+          print(f"Uploaded {output_parquet} to GCS.")
