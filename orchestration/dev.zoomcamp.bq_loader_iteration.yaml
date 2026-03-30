@@ -1,0 +1,35 @@
+id: bq_loader_iteration
+namespace: dev.zoomcamp
+
+tasks:
+  - id: load_to_bigquery
+    type: io.kestra.plugin.gcp.bigquery.LoadFromGcs
+    from: 
+      - "gs://railway-data-lake-dammi-2026/raw/services-2025.parquet"
+    destinationTable: "eng-district-485200-n2.railway_data_lake.trains"
+    format: PARQUET
+    writeDisposition: WRITE_TRUNCATE
+    serviceAccount: "{{ kv('GCP_CREDS') }}"
+    autodetect: false
+    schema:
+      fields:
+        - {name: service_rdt_id, type: INT64}       # Changed from INTEGER
+        - {name: service_date, type: DATE}
+        - {name: service_type, type: STRING}
+        - {name: service_company, type: STRING}
+        - {name: service_train_number, type: INT64} # Changed from INTEGER
+        - {name: service_completely_cancelled, type: BOOL} # BOOL or BOOLEAN (try BOOL first)
+        - {name: service_partly_cancelled, type: BOOL}
+        - {name: service_maximum_delay, type: INT64} # Changed from INTEGER
+        - {name: stop_rdt_id, type: INT64}          # Changed from INTEGER
+        - {name: stop_station_code, type: STRING}
+        - {name: stop_station_name, type: STRING}
+        - {name: stop_arrival_time, type: TIMESTAMP}
+        - {name: stop_arrival_delay, type: INT64}   # Changed from INTEGER
+        - {name: stop_arrival_cancelled, type: BOOL}
+        - {name: stop_departure_time, type: TIMESTAMP}
+        - {name: stop_departure_delay, type: INT64} # Changed from INTEGER
+        - {name: stop_departure_cancelled, type: BOOL}
+        - {name: stop_platform_change, type: BOOL}
+        - {name: stop_planned_platform, type: STRING}
+        - {name: stop_actual_platform, type: STRING}

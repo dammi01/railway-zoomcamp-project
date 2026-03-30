@@ -1,17 +1,62 @@
-version: "3"
+volumes:
+  railway_postgres_data:
+    driver: local
+  kestra_postgres_data:
+    driver: local
+  kestra_data:
+    driver: local
+  kestra_tmp:
+    driver: local
+
 services:
+  railway_db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: railway_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - railway_postgres_data:/var/lib/postgresql
+
+  kestra_postgres:
+    image: postgres:18
+    volumes:
+      - kestra_postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: k3str4
+
   kestra:
-    image: kestra/kestra:latest-full
-    command: server local
+    image: kestra/kestra:v1.1
+    user: "root"
+    command: server standalone
+    volumes:
+      - kestra_data:/app/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kestra_tmp:/tmp/kestra-wd
+      # THIS IS THE IDENTITY BRIDGE
+      - /home/usuario:/home/usuario 
     ports:
       - "8080:8080"
     environment:
       KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://kestra_postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: k3str4
         kestra:
-          storage:
-            type: local
-            local:
-              base-path: /tmp/kestra
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/kestra:/tmp/kestra
+          repository: {type: postgres}
+          storage: {type: local, local: {basePath: "/app/storage"}}
+          queue: {type: postgres}
+          tasks: {tmpDir: {path: /tmp/kestra-wd/tmp}}
+          ai:
+            enabled: true
+            type: "gemini"
+            gemini:
+              api-key: "AIzaSyDKZGwWKqCKyNI68pGfs52gbJRCllCB9WE"
+              model-name: "gemini-1.5-flash"

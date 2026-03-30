@@ -1,26 +1,28 @@
-venv/
-.env
+# Credentials (CRITICAL)
+keys.json
 *.json
-.terraform/
-venv/
+*.upl
 .env
-*.json
-.terraform/
-terraform.tfstate
 
-# Data files
+# Large Data & Databases
 data/
+*.db
+*.db.wal
 *.csv
 *.csv.gz
 *.parquet
+*.zip
 
-# Python environments
+# Python & Environments
 .venv/
 venv/
 __pycache__/
+.python-version
+uv.lock
 
-# Terraform state
-*.tfstate
-*.tfstate.backup
-
-
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+*.tfvars

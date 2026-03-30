@@ -1,0 +1,26 @@
+id: railway_consolidated_FINAL_v23
+namespace: dev.zoomcamp
+
+tasks:
+  - id: complete_pipeline
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    commands:
+      # --- STEP 1: VISIBILITY ---
+      - echo "Checking CSV..."
+      - ls -lh /home/usuario/Projects/railway-zoomcamp-project/data/trains.csv
+      
+      # --- STEP 2: DUCKDB TRANSFORMATION ---
+      - echo "Installing DuckDB..."
+      - pip install duckdb --no-cache-dir
+      - echo "Converting CSV to Parquet..."
+      - |
+        python3 -c "import duckdb; duckdb.query(\"COPY (SELECT * FROM read_csv_auto('/home/usuario/Projects/railway-zoomcamp-project/data/trains.csv')) TO '/home/usuario/Projects/railway-zoomcamp-project/data/trains.parquet' (FORMAT 'PARQUET')\")"
+      
+      # --- STEP 3: GCS UPLOAD ---
+      - echo "Installing Google Cloud Storage..."
+      - pip install google-cloud-storage --no-cache-dir
+      - echo "Uploading to Cloud..."
+      - |
+        python3 -c "from google.cloud import storage; client = storage.Client.from_service_account_json('/home/usuario/Projects/railway-zoomcamp-project/keys.json'); bucket = client.bucket('railway-data-lake-dammi-2026'); bucket.blob('raw/trains.parquet').upload_from_filename('/home/usuario/Projects/railway-zoomcamp-project/data/trains.parquet'); print('UPLOAD SUCCESS')"
