@@ -58,5 +58,5 @@ services:
             enabled: true
             type: "gemini"
             gemini:
-              api-key: "AIzaSyDKZGwWKqCKyNI68pGfs52gbJRCllCB9WE"
+              api-key: "key"
               model-name: "gemini-1.5-flash"
